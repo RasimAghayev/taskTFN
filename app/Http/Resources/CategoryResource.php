@@ -22,7 +22,7 @@ class CategoryResource extends JsonResource
             'categoryCreatedAt' => $this->created_at->format('d.m.Y H:i:s'),
             'categoryUpdatedAt' => $this->updated_at->format('d.m.Y H:i:s'),
             'categoryParentIds'=> self::collection($this->whenLoaded('categoryparentids')),
-//            'products'=>ProductResource::collection($this->whenLoaded('categoryproducts')),
+            'products'=>ProductResource::collection($this->whenLoaded('categoryproducts')),
         ];
     }
 }

@@ -22,9 +22,10 @@ class CategorySeeder extends Seeder
             ->count(5)
             ->hasCategoryParentIds(10)
             ->create();
-//        Category::factory()
-//            ->count(5)
-//            ->hasCategoryParentIds(10)
-//            ->create();
+        Category::factory()
+            ->count(5)
+            ->hasCategoryParentIds(10)
+            ->hasCategoryProducts(10)
+            ->create();
     }
 }
