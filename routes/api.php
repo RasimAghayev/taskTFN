@@ -19,4 +19,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 Route::group(['prefix'=>'v1','namespace'=>'App\Http\Controllers'],function(){
     Route::apiResource('category',CategoryController::class);
+    Route::apiResource('product',ProductController::class);
 });
