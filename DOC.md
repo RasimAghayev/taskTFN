@@ -4,6 +4,9 @@ GET
 
 /api/v1/category/{id}  --  category id without parent_id
 
+/api/v1/category?includeCategoryParentIds=true&categoryName[eq]=Mose Fay
+
+/api/v1/category?includeCategoryParentIds=true&categoryParentId[eq]=12
 
 /api/v1/category?includeCategoryParentIds=true   -- all category with parent_id
 
