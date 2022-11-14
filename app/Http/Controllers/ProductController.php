@@ -30,7 +30,7 @@ class ProductController extends Controller
         if($includeProduct){
             $products=$products->with('productpurchase');
         }
-        //myshop.local/models/CategoriesModel.php -> line => 62
+        //myshop.local/models/ProductsModel.php -> line => 6
         return new ProductCollection($products->orderBy('id', 'desc')->paginate(10)->appends($request->query()));
     }
 
@@ -42,7 +42,7 @@ class ProductController extends Controller
      */
     public function store(ProductRequest $request)
     {
-        //myshop.local/models/CategoriesModel.php -> line => 51
+        //myshop.local/models/ProductsModel.php -> line => 51
         return new ProductResource(Product::create($request->all()));
     }
 
@@ -85,7 +85,7 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        //myshop.local/models/CategoriesModel.php -> line => 80
+        //myshop.local/models/ProductsModel.php -> line => 61
         $product->update($request->all());
         return response()->json([
             'message'=>"Product Updated.",

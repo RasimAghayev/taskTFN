@@ -7,7 +7,7 @@ use App\Filters\ApiFilter;
 class CategoryFilters extends ApiFilter
 {
     protected $safeParms=[
-        'categoryName'=>['eq','ne'],
+        'categoryName'=>['eq','ne','lk'],
         'categoryParentId'=>['eq','ne'],
     ];
     protected $columnMap=[

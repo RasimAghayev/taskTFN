@@ -8,9 +8,9 @@ class ProductFilters extends ApiFilter
 {
     protected $safeParms=[
         'productCategoryId'=>['eq','lt','lte','gt','gte','ne'],
-        'productName'=>['eq','ne'],
-        'productDescription'=>['eq','ne'],
-        'productPrice'=>['eq','lt','lte','gt','gte','ne'],
+        'productName'=>['eq','ne','lk','nlk'],
+        'productDescription'=>['eq','ne','lk','nlk'],
+        'productPrice'=>['eq','lt','lte','gt','gte','ne','lk'],
         'productStatus'=>['eq','ne'],
     ];
     protected $columnMap=[
