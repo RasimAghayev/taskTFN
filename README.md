@@ -1,66 +1,128 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# taskTFN
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel 9 REST API for managing a product catalogue: **categories** (hierarchical,
+self-referencing) and **products** (owned by a category, with optional order and
+purchase associations). Exposed over HTTP as a versioned JSON API
+(`/api/v1/...`) authenticated with **Laravel Sanctum**.
 
-## About Laravel
+## Business Context
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+`taskTFN` is a lightweight catalogue backend. The domain is two aggregate roots —
+`Category` and `Product` — connected by a many-to-one relationship
+(`product.category_id → categories.id`). Categories support nesting through a
+self-referencing `parent_id`, and both resources expose a small set of CRUD
+operations plus optional relation eager-loading (`includeCategoryParentIds`,
+`includeCategoryProducts`, `includeProductOrders`, `includeProductPurchases`).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The API is the only entry point: there is no web UI. All responses are JSON,
+paginated (10 per page), and shaped by Laravel **API Resources**
+(`CategoryResource`, `ProductResource`) so the wire contract stays decoupled from
+the persisted schema.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Architecture
 
-## Learning Laravel
+- **Framework**: Laravel 9 (`laravel/framework ^9.19`, PHP ^8.1).
+- **Pattern**: resource-controller REST API (Laravel's idiomatic MVC, slimmed to
+  HTTP layer + Eloquent models + API Resources).
+- **Auth**: `laravel/sanctum` — `Route::middleware('auth:sanctum')` guards the
+  `/api/v1/...` resource group.
+- **Validation**: `ApiFormRequest` subclasses (`CategoryRequest`, `ProductRequest`)
+  with method-aware rules; request payload keys are remapped to model column
+  names in `prepareForValidation`.
+- **Filtering**: `ApiFilter` base class with a declarative `safeParms` /
+  `operatorMap` table (`eq`, `ne`, `lt`, `lte`, `gt`, `gte`, `lk`, `nlk`).
+  `CategoryFilters` and `ProductFilters` declare the per-resource allow-list.
+- **Serialization**: `JsonResource` subclasses translate models into camelCase
+  DTOs (`categoryId`, `categoryName`, `productPrice`, ...).
+- **Persistence**: MySQL via Eloquent; migrations live in `database/migrations/`.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```
+app/
+├── Console/            # Kernel
+├── Exceptions/         # Handler
+├── Filters/            # ApiFilter, CategoryFilters, ProductFilters
+├── Http/
+│   ├── Controllers/    # CategoryController, ProductController
+│   ├── Middleware/     # Sanctum + default Laravel middleware
+│   ├── Requests/       # ApiFormRequest, CategoryRequest, ProductRequest
+│   └── Resources/      # CategoryResource, ProductResource (+Collection)
+├── Models/             # Category, Product, User
+├── Policies/           # CategoryPolicy
+└── Providers/          # AppServiceProvider
+routes/
+├── api.php             # /api/v1/category, /api/v1/product (apiResource)
+└── web.php, console.php, channels.php
+database/
+├── migrations/         # users, password_resets, failed_jobs,
+│                       #   personal_access_tokens, categories, products
+├── factories/          # CategoryFactory, ProductFactory, UserFactory
+└── seeders/            # CategorySeeder, ProductSeeder, DatabaseSeeder
+tests/                  # Feature/ExampleTest, Unit/ExampleTest
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## API
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Base URL: `/api/v1` (prefix registered in `routes/api.php`).
 
-## Laravel Sponsors
+### Categories
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+| Method | Path | Description |
+|---|---|---|
+| GET | `/category` | List, filtered, paginated |
+| GET | `/category/{id}` | Single category |
+| POST | `/category` | Create |
+| PUT | `/category` | Update (body includes `categoryId`) |
+| DELETE | `/category/{id}` | Delete |
 
-### Premium Partners
+Query params: `categoryName[eq|ne|lk]`, `categoryParentId[eq|ne]`,
+`includeCategoryParentIds`, `includeCategoryProducts`.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+### Products
 
-## Contributing
+| Method | Path | Description |
+|---|---|---|
+| GET | `/product` | List, filtered, paginated |
+| GET | `/product/{id}` | Single product |
+| POST | `/product` | Create |
+| PUT | `/product` | Update |
+| DELETE | `/product/{id}` | Delete |
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Query params: `productName[eq|lk]`, `productPrice[qt]`,
+`productCategoryId[eq]`, `includeProductOrders`, `includeProductPurchases`.
 
-## Code of Conduct
+Full request/response examples are documented in `docs/api.md` (migrated from the
+legacy `DOC.md` scratch notes).
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Local Development
 
-## Security Vulnerabilities
+```bash
+# 1. Install
+composer install
+cp .env.example .env && php artisan key:generate
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# 2. Database (MySQL)
+php artisan migrate --seed
 
-## License
+# 3. Serve
+php artisan serve
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Environment configuration is driven by `.env.example` (all secrets left blank or
+placeholder; never commit real credentials).
+
+## Testing
+
+```bash
+vendor/bin/phpunit
+```
+
+## CI / Deployment
+
+A Docker setup is not yet configured for this repository. When added, the standard
+flow is `docker build → docker compose up → tests → health check`; see
+`docs/deployment.md` once it exists.
+
+## Documentation
+
+- `docs/api.md` — endpoint contract, request/response payloads, validation rules.
+- `docs/database.md` — schema (`categories`, `products`) and migration history.
