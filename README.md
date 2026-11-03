@@ -1,4 +1,6 @@
 # taskTFN
+![Views](https://hits.sh/github.com/RasimAghayev/taskTFN.svg?label=views&color=0e75b6)
+
 
 A Laravel 9 REST API for managing a product catalogue: **categories** (hierarchical,
 self-referencing) and **products** (owned by a category, with optional order and
