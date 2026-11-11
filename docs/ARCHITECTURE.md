@@ -45,7 +45,7 @@ app/
   Providers/                 # App/Auth/Broadcast/Event/Route providers
 database/
   migrations/                # users, password_resets, failed_jobs, personal_access_tokens,
-                             # categories, products
+                              # categories, products
   factories/                 # CategoryFactory, ProductFactory, UserFactory
   seeders/                   # DatabaseSeeder -> CategorySeeder; ProductSeeder present
 resources/                   # minimal JS/CSS/views (Vite entrypoints)
